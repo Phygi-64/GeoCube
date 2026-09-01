@@ -1,0 +1,53 @@
+{
+  "Phygi_64": {
+    "password": "PHYGIpassword",
+    "isAdmin": true,
+    "inventory": [
+      {
+        "type": "stone",
+        "count": 128
+      },
+      {
+        "type": "wood",
+        "count": 64
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "Phygi": {
+    "password": "PHYGI"
+  }
+}

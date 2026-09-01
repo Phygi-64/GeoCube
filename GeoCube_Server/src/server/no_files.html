@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Fichiers Manquants - GéoCube</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #0a0a0a;
+            color: white;
+            font-family: 'Press Start 2P', cursive;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .container {
+            background: #1a1a1a;
+            padding: 40px;
+            border: 6px solid #ff244a;
+            border-radius: 20px;
+            box-shadow: 0 0 50px rgba(255, 36, 74, 0.3);
+            max-width: 600px;
+            width: 90%;
+        }
+
+        h1 {
+            color: #ff244a;
+            font-size: 24px;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 0 #880000;
+        }
+
+        p {
+            font-size: 12px;
+            line-height: 2;
+            margin-bottom: 40px;
+            color: #ccc;
+        }
+
+        .itch-btn {
+            display: inline-block;
+            background: #ff244a;
+            color: white;
+            padding: 20px 30px;
+            text-decoration: none;
+            border: 4px solid #880000;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: transform 0.2s, background 0.2s;
+            cursor: pointer;
+        }
+
+        .itch-btn:hover {
+            background: #ff4a6a;
+            transform: scale(1.05);
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 20px;
+            font-size: 8px;
+            color: #555;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>OUPSSS...</h1>
+        <p>
+            Il semblerait que vous n'ayez pas les fichiers du jeu ou que vous essayiez d'y accéder de manière
+            incorrecte.<br><br>
+            Vous devez installer <b>GéoCube</b> via la page officielle pour pouvoir jouer.
+        </p>
+        <a href="https://watercube-studio.itch.io/geocube" class="itch-btn">TÉLÉCHARGER SUR ITCH.IO</a>
+        <a href="/" class="back-link">Retour à l'accueil</a>
+    </div>
+</body>
+
+</html>

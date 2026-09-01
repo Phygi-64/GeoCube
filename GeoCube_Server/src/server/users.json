@@ -1,0 +1,109 @@
+{
+  "Phygi_64": {
+    "password": "PHYGIpassword",
+    "isAdmin": true,
+    "inventory": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "quests": {},
+    "friends": [],
+    "friendRequests": [],
+    "coins": 1,
+    "cards": {
+      "blocks": {
+        "glass": {
+          "count": 3,
+          "max": 5,
+          "nextRegen": 0
+        },
+        "wood": {
+          "count": 33,
+          "max": 37,
+          "nextRegen": 0
+        },
+        "stone": {
+          "count": 34,
+          "max": 32,
+          "nextRegen": 0
+        },
+        "grass": {
+          "count": 32,
+          "max": 32,
+          "nextRegen": 0
+        }
+      },
+      "skins": [
+        "#ff0000"
+      ]
+    },
+    "v5_reset": true,
+    "color": "#ff0000",
+    "stats": {
+      "distance": 0,
+      "blocksPlaced": 0,
+      "blocksCollected": 0,
+      "blocksDestroyed": 0,
+      "byType": {
+        "wood": 0,
+        "stone": 0,
+        "diamond": 0,
+        "gold": 0,
+        "obsidienne": 0,
+        "emeraude": 0,
+        "brick": 0,
+        "glass": 0
+      }
+    },
+    "clicker": {
+      "total": 56,
+      "buildings": {
+        "pioche": 0,
+        "steve": 0,
+        "four": 0,
+        "mine": 0,
+        "villageois": 0,
+        "golem": 0,
+        "cite": 0,
+        "dragon": 0
+      }
+    },
+    "x": 0.7071732998036633,
+    "y": 0.9,
+    "z": -0.19924111114081536
+  }
+}

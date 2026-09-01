@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Background -->
+  <!-- Transparent Background -->
+  
+  <!-- 3D Cube effect -->
+  <!-- Top face (purple) -->
+  <polygon points="50,20 80,35 50,50 20,35" fill="#9c27b0" stroke="#000" stroke-width="2"/>
+  
+  <!-- Left face (green) -->
+  <polygon points="20,35 20,65 50,80 50,50" fill="#4caf50" stroke="#000" stroke-width="2"/>
+  
+  <!-- Right face (brown) -->
+  <polygon points="50,50 50,80 80,65 80,35" fill="#795548" stroke="#000" stroke-width="2"/>
+  
+  <!-- Highlights for 3D effect -->
+  <polygon points="50,20 80,35 50,50 20,35" fill="#ab47bc" opacity="0.3"/>
+  <polygon points="20,35 20,65 50,80 50,50" fill="#66bb6a" opacity="0.3"/>
+</svg>

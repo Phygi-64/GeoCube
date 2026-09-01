@@ -1,0 +1,15 @@
+{
+  "appId": "com.geocube.app",
+  "appName": "GeoCube",
+  "webDir": "src/client",
+  "bundledWebRuntime": false,
+  "server": {
+    "url": "http://geocube.duckdns.org:30000",
+    "androidScheme": "http",
+    "cleartext": true,
+    "allowNavigation": [
+      "geocube.duckdns.org"
+    ]
+  }
+}
+

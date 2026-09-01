@@ -1,0 +1,1068 @@
+/* --- GLOBAL RESET --- */
+body {
+    margin: 0;
+    overflow: hidden;
+    font-family: 'Press Start 2P', cursive;
+    background-color: #000;
+}
+
+/* --- MENUS (OVERLAYS) --- */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7); /* DARK OVERLAY BACKGROUND */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    pointer-events: auto;
+}
+
+/* --- MOBILE / VERTICAL OPTIMIZATIONS --- */
+@media (max-width: 800px) {
+    #clicker-menu {
+        flex-direction: column !important;
+        align-items: center !important;
+        padding: 20px !important;
+        overflow-y: auto !important;
+    }
+    
+    #clicker-menu > div {
+        width: 100% !important;
+        min-height: auto !important;
+        flex: none !important;
+    }
+
+    .left-menu {
+        width: 95vw !important;
+        left: 2.5vw !important;
+        padding: 30px 15px !important;
+    }
+
+    .pixel-title {
+        font-size: 20px !important;
+    }
+
+    .text-btn {
+        font-size: 14px !important;
+        padding: 15px 0 !important;
+    }
+
+}
+
+/* Jeu mobile : HUD + masque le bandeau coins/pseudo en partie (le HUD du jeu reprend les pièces) */
+body.mobile-game.game-active #top-corner-ui {
+    display: none !important;
+}
+
+body.mobile-game #hotbar .slot {
+    pointer-events: auto;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+.login-container {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 98vw;
+    margin: 20px;
+}
+
+.menu-card {
+    background: #1a1a1a;
+    padding: 2vmin;
+    border: 0.5vmin solid #33c1ff;
+    border-radius: 2vmin;
+    text-align: center;
+    color: white;
+    box-shadow: 1vmin 1vmin 0px rgba(0, 50, 100, 0.5);
+    width: 90vw;
+    max-width: 700px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2vmin;
+    pointer-events: auto;
+    max-height: 90vh;
+    height: fit-content;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.side-card {
+    width: 300px;
+}
+
+.center-card {
+    width: 400px;
+}
+
+.wide-card {
+    max-width: 1400px !important;
+    width: 98vw !important;
+    background: rgba(20, 20, 20, 0.85) !important; /* Semi-transparent */
+    backdrop-filter: blur(10px);
+}
+
+
+
+/* --- BUTTONS --- */
+.itch-link {
+    display: inline-block;
+    transition: transform 0.2s;
+}
+
+.itch-link:hover {
+    transform: scale(1.1);
+}
+
+.itch-link:hover span {
+    text-shadow: 0 0 10px #ff244a;
+}
+
+.pixel-btn {
+    width: 100%;
+    padding: 15px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 12px;
+    color: white;
+    background: #4caf50;
+    border: 4px solid #2e7d32;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.1s, filter 0.1s;
+    image-rendering: pixelated;
+}
+
+.pixel-btn:hover {
+    filter: brightness(1.2);
+    transform: scale(1.02);
+}
+
+.pixel-btn:active {
+    transform: scale(0.98);
+}
+
+.pixel-btn:disabled {
+    background: #555 !important;
+    border-color: #333 !important;
+    cursor: not-allowed;
+    transform: none;
+}
+
+
+.studio-logo-container {
+    padding: 15px;
+    /* Slightly less padding to make logo bigger */
+    background: #1a1a1a;
+    border: 4px solid #33c1ff;
+    border-radius: 15px;
+    box-shadow: 10px 10px 0px rgba(0, 50, 100, 0.5);
+    width: 350px;
+    /* Increased from 300px */
+    max-width: 90vw;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+
+
+.studio-logo-side {
+    width: 100%;
+    border-radius: 5px;
+    mix-blend-mode: screen;
+    filter: contrast(1.2) brightness(1.1);
+    display: block;
+}
+
+
+.guide-panel {
+    background: #1a1a1a;
+    padding: 20px;
+    border: 4px solid #33c1ff;
+    border-radius: 20px;
+    color: white;
+    box-shadow: 10px 10px 0px rgba(0, 50, 100, 0.5);
+    width: 350px;
+    /* Increased from 300px */
+    max-width: 90vw;
+    box-sizing: border-box;
+    font-size: 10px;
+    font-family: 'Press Start 2P', cursive;
+    display: flex;
+    flex-direction: column;
+}
+
+
+.guide-panel ul {
+    line-height: 2;
+}
+
+.mode-btn {
+    flex: 1;
+    padding: 10px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 10px;
+    color: white;
+    background: #333;
+    border: 3px solid #555;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 3px 3px 0px #000;
+}
+
+.mode-btn.active {
+    background: #00ff00;
+    border-color: #008800;
+    color: black;
+}
+
+.mode-btn:hover:not(.active) {
+    background: #444;
+}
+
+.guide-panel li {
+    margin-bottom: 8px;
+}
+
+/* --- LOGO --- */
+.logo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.pixel-title {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 24px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    color: #33c1ff;
+    text-shadow: 4px 4px 0px #000;
+}
+
+.cube-logo {
+    width: 80px;
+    height: 80px;
+    position: relative;
+    transform-style: preserve-3d;
+    animation: rotateCube 4s infinite linear;
+    margin-bottom: 20px;
+}
+
+.cube-face {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    border: 3px solid #000;
+    opacity: 0.9;
+}
+
+.cube-face.front {
+    background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+    transform: translateZ(40px);
+}
+
+.cube-face.back {
+    background: linear-gradient(135deg, #2e7d32 0%, #388e3c 100%);
+    transform: rotateY(180deg) translateZ(40px);
+}
+
+.cube-face.right {
+    background: linear-gradient(135deg, #795548 0%, #8d6e63 100%);
+    transform: rotateY(90deg) translateZ(40px);
+}
+
+.cube-face.left {
+    background: linear-gradient(135deg, #5d4037 0%, #6d4c41 100%);
+    transform: rotateY(-90deg) translateZ(40px);
+}
+
+.cube-face.top {
+    background: linear-gradient(135deg, #9c27b0 0%, #ab47bc 100%);
+    transform: rotateX(90deg) translateZ(40px);
+}
+
+.cube-face.bottom {
+    background: linear-gradient(135deg, #7b1fa2 0%, #8e24aa 100%);
+    transform: rotateX(-90deg) translateZ(40px);
+}
+
+@keyframes rotateCube {
+    0% {
+        transform: rotateX(0deg) rotateY(0deg);
+    }
+
+    100% {
+        transform: rotateX(360deg) rotateY(360deg);
+    }
+}
+
+.pixel-title {
+    color: #9c27b0;
+    /* PURPLE */
+    text-shadow: 4px 4px #000;
+    font-size: 40px;
+    margin-bottom: 40px;
+}
+
+input {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    margin-bottom: 20px;
+    background: #222;
+    border: 4px solid #000;
+    border-radius: 8px;
+    /* ROUNDED */
+    color: white;
+    font-family: 'Press Start 2P', cursive;
+    box-sizing: border-box;
+    text-transform: uppercase;
+}
+
+
+button {
+    background: #9c27b0;
+    border: 4px solid #000;
+    border-radius: 8px;
+    /* ROUNDED */
+    color: white;
+    font-family: 'Press Start 2P', cursive;
+    padding: 15px;
+    cursor: pointer;
+    width: 100%;
+    box-shadow: 4px 4px 0px #000;
+}
+
+button:hover {
+    background: #ab47bc;
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px #000;
+}
+
+button:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #000;
+}
+
+
+/* --- HUD --- */
+#game-ui {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+#crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    color: rgba(255, 255, 255, 0.8);
+    text-shadow: 2px 2px 0 #000;
+    pointer-events: none;
+    z-index: 10;
+}
+
+#hotbar {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    background: transparent;
+    pointer-events: auto;
+}
+
+.slot {
+    width: 8vmin;
+    height: 8vmin;
+    min-width: 50px;
+    min-height: 50px;
+    border: 0.4vmin solid #000;
+    border-radius: 1vmin;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 1.5vmin;
+    position: relative;
+    box-shadow: 0.4vmin 0.4vmin 0px rgba(0, 0, 0, 0.5);
+    padding: 0.5vmin;
+}
+
+
+.slot.selected {
+    border-color: #9c27b0;
+    /* PURPLE */
+    background: rgba(156, 39, 176, 0.2);
+    /* PURPLE TINT */
+    transform: scale(1.1);
+}
+
+.slot img {
+    width: 70%;
+    height: 70%;
+    image-rendering: pixelated;
+}
+
+.slot span {
+    position: absolute;
+    bottom: 2px;
+    right: 4px;
+    text-shadow: 2px 2px 0 #000;
+}
+
+/* --- CHAT --- */
+/* Settings Control Row */
+.control-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 5px;
+    background: #2a2a2a;
+    border: 2px solid #444;
+    border-radius: 5px;
+}
+
+.control-label {
+    font-size: 8px;
+    color: #ccc;
+}
+
+.control-key {
+    background: #444;
+    color: #00ff00;
+    padding: 5px 10px;
+    border: 2px solid #555;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 8px;
+    min-width: 80px;
+    text-align: center;
+}
+
+.control-key.waiting {
+    background: #ffeb3b;
+    color: black;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+#chat-container {
+    position: absolute;
+    bottom: 120px;
+    /* Above hotbar */
+    left: 20px;
+    width: 400px;
+    font-family: 'Press Start 2P', cursive;
+    pointer-events: auto;
+}
+
+#chat-history {
+    max-height: 200px;
+    overflow-y: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 0 #000;
+    color: white;
+    font-size: 10px;
+}
+
+.chat-msg {
+    margin-bottom: 5px;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 5px;
+    border-left: 4px solid #9c27b0;
+    border-radius: 4px;
+    /* GENTLE ROUNDED */
+}
+
+
+#chat-input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid #fff;
+    border-radius: 8px;
+    /* ROUNDED */
+    padding: 10px;
+    color: white;
+    font-size: 10px;
+}
+
+
+/* --- QUEST MENU --- */
+/* We remove #quest-menu because it is assigned to the .overlay element in HTML.
+   If we style it with absolute/bg, it shrinks the screen-darkening overlay! 
+   The inner .menu-card will provide the background properly. */
+
+
+
+#quest-list {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 15px;
+    padding: 20px;
+    scrollbar-width: thin;
+    /* Firefox */
+    scrollbar-color: #9c27b0 #2a2a2a;
+    /* Firefox */
+}
+
+
+/* Custom Pixelated Scrollbar */
+#quest-list::-webkit-scrollbar {
+    width: 16px;
+}
+
+#quest-list::-webkit-scrollbar-track {
+    background: #2a2a2a;
+    border-left: 4px solid #000;
+}
+
+#quest-list::-webkit-scrollbar-thumb {
+    background: #9c27b0;
+    border: 4px solid #000;
+    box-shadow: inset -4px -4px 0px rgba(0, 0, 0, 0.5);
+}
+
+#quest-list::-webkit-scrollbar-thumb:hover {
+    background: #ba68c8;
+}
+
+.quest-item {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 15px 20px;
+    border: 2px solid #222;
+    border-radius: 10px;
+    font-size: 11px;
+    line-height: 1.4;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    transition: transform 0.2s;
+    text-align: left;
+}
+
+.quest-item button {
+    width: auto;
+    padding: 10px 20px;
+    font-size: 10px;
+}
+
+.quest-item:hover {
+    transform: translateY(-5px);
+}
+
+.daily-quest {
+    border: 0.3vmin solid #ffeb3b !important;
+    background: rgba(255, 235, 59, 0.05) !important;
+}
+
+.starter-quest {
+    border: 0.3vmin solid #33c1ff !important;
+    background: rgba(51, 193, 255, 0.05) !important;
+}
+
+
+/* --- MAIN INVENTORY --- */
+#main-inventory {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(40, 40, 40, 0.95);
+    border-radius: 25px;
+    /* ROUNDED */
+    color: white;
+    padding: 30px;
+    border: 6px solid #000;
+    box-shadow: 15px 15px 0px #000;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: auto;
+    z-index: 1001;
+}
+
+
+#main-inventory h2 {
+    font-family: 'Press Start 2P', cursive;
+    margin-bottom: 25px;
+    color: #9c27b0;
+    text-shadow: 3px 3px 0 #000;
+}
+
+#main-inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(9, auto);
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+}
+
+#main-inventory-grid .slot {
+    width: 6vmin;
+    height: 6vmin;
+    min-width: 40px;
+    min-height: 40px;
+}
+
+#picked-item-mouse {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid #fff;
+    border-radius: 8px;
+    /* ROUNDED CORNERS */
+    box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 50px !important;
+    height: 50px !important;
+}
+
+
+#picked-item-mouse img,
+#picked-item-mouse div {
+    width: 32px !important;
+    height: 32px !important;
+}
+
+#picked-item-mouse span {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 8px;
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    color: white;
+    text-shadow: 2px 2px #000;
+}
+
+/* --- PLAYER LIST (TAB) --- */
+#player-list-container {
+    position: absolute;
+    top: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    border: 3px solid #33c1ff;
+    border-radius: 10px;
+    padding: 2vmin;
+    width: 30vw;
+    min-width: 300px;
+    max-width: 500px;
+    display: none;
+    /* Controlled by Tab */
+    flex-direction: column;
+    align-items: center;
+    z-index: 2000;
+    box-shadow: 0 0 15px rgba(51, 193, 255, 0.3);
+}
+
+.player-list-title {
+    font-size: 14px;
+    color: #9c27b0;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 0 #000;
+}
+
+#player-list {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+}
+
+.player-list-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px;
+    border-radius: 8px;
+    border-left: 4px solid #fff;
+}
+
+.player-color-dot {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    border: 2px solid #000;
+}
+
+.player-name {
+    font-size: 10px;
+    color: white;
+    text-shadow: 1px 1px 0 #000;
+}
+
+/* --- SETTINGS EXPANSION --- */
+.settings-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 10px;
+    font-size: 10px;
+    background: #333;
+    border: 4px solid #555;
+    border-radius: 8px;
+    color: white;
+    font-family: 'Press Start 2P', cursive;
+    cursor: pointer;
+    box-shadow: 3px 3px 0px #000;
+}
+
+.tab-btn.active {
+    background: #9c27b0;
+    border-color: #000;
+    box-shadow: inset 2px 2px 0px rgba(0, 0, 0, 0.5);
+    transform: translateY(2px);
+}
+
+.tab-content {
+    display: none;
+    width: 100%;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.sound-settings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.sound-row {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    background: #2a2a2a;
+    padding: 15px;
+    border: 2px solid #444;
+    border-radius: 8px;
+}
+
+.sound-row label {
+    font-size: 8px;
+    color: #9c27b0;
+}
+
+.sound-row input[type="range"] {
+    width: 100%;
+    cursor: pointer;
+    accent-color: #9c27b0;
+}
+
+.left-menu * {
+    pointer-events: auto;
+}
+
+/* --- MAP --- */
+#walk-map {
+    width: 100%;
+    height: 250px;
+    background: #000;
+    border-radius: 15px;
+    overflow: hidden;
+    z-index: 10;
+}
+
+.leaflet-container {
+    background: #000 !important;
+}
+
+.leaflet-control-attribution {
+    display: none !important;
+}
+
+/* Bornes Stickers */
+.borne-marker-round {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 3px solid #ffeb3b;
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 0 10px rgba(255, 235, 59, 0.5);
+    background-color: #000;
+}
+
+.borne-popup .leaflet-popup-content-wrapper {
+    background: #111;
+    color: #fff;
+    border: 2px solid #33c1ff;
+    border-radius: 10px;
+    font-family: 'Press Start 2P', cursive;
+}
+
+.borne-popup .leaflet-popup-tip {
+    background: #33c1ff;
+}
+
+/* --- FRIEND LIST STYLES --- */
+.friend-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1.5vmin;
+    border-radius: 1vmin;
+    margin-bottom: 1vmin;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.friend-info {
+    display: flex;
+    align-items: center;
+    gap: 1vmin;
+    flex: 1;
+    min-width: 0; /* Allow shrinking for long names */
+}
+
+.friend-name-text {
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 1;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.server-label {
+    color: #aaa;
+    font-size: 8px;
+    margin-left: 5px;
+}
+
+.friend-actions {
+    display: flex;
+    gap: 5px;
+    flex-shrink: 0;
+}
+
+.text-btn {
+    width: 100%;
+    padding: 10px 0;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 12px;
+    color: white;
+    background: transparent !important;
+    border: none !important;
+    cursor: pointer;
+    transition: transform 0.1s, color 0.1s;
+    text-shadow: 2px 2px 0px #000;
+    text-align: left;
+    box-shadow: none !important;
+}
+
+.text-btn:hover {
+    color: #33c1ff;
+    transform: translateX(10px);
+}
+
+.text-btn:disabled {
+    color: #555;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.left-menu .mode-btn {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    text-shadow: 2px 2px #000;
+    text-align: left;
+    padding: 10px 0;
+}
+
+.left-menu .mode-btn.active {
+    background: transparent;
+    border: none;
+    color: #00ff00;
+}
+
+.left-menu .mode-btn:hover:not(.active) {
+    background: transparent;
+    color: #33c1ff;
+    transform: translateX(10px);
+}
+
+.left-menu input[type="text"],
+.left-menu input[type="password"] {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+}
+
+.left-menu select {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+}
+
+.left-menu {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 50vw;
+    min-width: 350px;
+    height: 100vh;
+    background: linear-gradient(to right, rgba(10, 20, 40, 0.95) 0%, rgba(0, 0, 0, 0.8) 60%, rgba(0, 0, 0, 0) 100%) !important;
+    padding: 60px 40px;
+    border: none !important;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    overflow-y: auto;
+    overflow-x: hidden;
+    pointer-events: none;
+    box-shadow: none !important;
+}
+
+.left-menu::-webkit-scrollbar {
+    width: 5px;
+}
+.left-menu::-webkit-scrollbar-thumb {
+    background: rgba(51, 193, 255, 0.3);
+    border-radius: 10px;
+}
+
+.left-menu:hover {
+    overflow-y: auto;
+}
+
+/* BOOSTER PACKS */
+.booster-pack {
+    width: 120px;
+    height: 170px;
+    border-radius: 6px;
+    position: relative;
+    box-shadow: 2px 5px 10px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 5px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    flex-shrink: 0;
+    overflow: hidden;
+    border: 2px solid #222;
+}
+.booster-pack:hover {
+    transform: translateY(-5px);
+    box-shadow: 4px 10px 15px rgba(0,0,0,0.8);
+}
+.booster-pack .booster-logo {
+    width: 40px;
+    image-rendering: pixelated;
+    filter: drop-shadow(2px 2px 0 #000);
+}
+.booster-pack .booster-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    color: white;
+    text-shadow: 1px 1px 0 #000;
+    margin-top: 2px;
+}
+.booster-pack .booster-rarity {
+    font-size: 10px;
+    font-weight: bold;
+    color: white;
+    background: rgba(0,0,0,0.5);
+    padding: 2px 5px;
+    border-radius: 5px;
+    margin: 5px 0;
+}
+.booster-pack .booster-desc {
+    font-size: 8px;
+    color: #eee;
+    text-shadow: 1px 1px 0 #000;
+    text-align: center;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+}
+.booster-pack .booster-price {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    color: #ffeb3b;
+    text-shadow: 2px 2px 0 #000;
+    background: rgba(0,0,0,0.6);
+    padding: 4px;
+    border-radius: 4px;
+}
+
+/* Gradients */
+.booster-pack.common { background: linear-gradient(135deg, #8bc34a, #33691e); border-color: #1b5e20; }
+.booster-pack.rare   { background: linear-gradient(135deg, #2196f3, #0d47a1); border-color: #01579b; }
+.booster-pack.epic   { background: linear-gradient(135deg, #ba68c8, #6a1b9a); border-color: #4a148c; }
+
+/* Foil Seal Top & Bottom */
+.booster-pack::before, .booster-pack::after {
+    content: '';
+    position: absolute;
+    left: 0; width: 100%; height: 10px;
+    background: repeating-linear-gradient(90deg, rgba(0,0,0,0.2) 0px, rgba(0,0,0,0.2) 2px, transparent 2px, transparent 4px);
+    z-index: 2;
+}
+.booster-pack::before { top: 0; border-bottom: 2px solid rgba(0,0,0,0.4); }
+.booster-pack::after { bottom: 0; border-top: 2px solid rgba(0,0,0,0.4); }
+
+.left-menu * {
+    pointer-events: auto;
+}

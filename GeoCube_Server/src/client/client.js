@@ -110,27 +110,35 @@ const BUILDING_INFO = {
     dragon: { name: "DRAGON NÉANT", cost: 25000000, cps: 52000, color: "#673ab7" }
 };
 
-const defaultPort = '30001';
-const isAppMode = window.isApp;
-const defaultHost = isAppMode ? 'geocube.duckdns.org' : window.location.hostname;
+function getSocketServerUrl(explicitPort) {
+    if (window.isApp) {
+        return 'http://geocube.duckdns.org:' + (explicitPort || '30000');
+    }
+    // Web browser mode (works seamlessly on Render HTTPS, Koyeb, localhost, etc.)
+    if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+        if (explicitPort && explicitPort !== '30000' && explicitPort !== '30001' && explicitPort !== '30002') {
+            return window.location.protocol + '//' + window.location.hostname + ':' + explicitPort;
+        }
+        return window.location.origin;
+    }
+    return 'http://' + (window.location.hostname || 'localhost') + ':' + (explicitPort || '30000');
+}
 
-/** Options Socket.IO : polling d'abord (WebView Android) puis upgrade websocket ; évite le blocage mixed-content si scheme HTTPS. */
+/** Options Socket.IO */
 function getSocketIoOptions() {
     return {
-        transports: ['polling', 'websocket'],
+        transports: ['websocket', 'polling'],
         reconnection: true,
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
         reconnectionAttempts: Infinity,
-        timeout: 45000,
-        pingTimeout: 60000,
-        pingInterval: 25000
+        timeout: 20000
     };
 }
 
-let socket = (typeof io !== 'undefined') ? io(`http://${defaultHost}:${defaultPort}`, getSocketIoOptions()) : null;
+let socket = (typeof io !== 'undefined') ? io(getSocketServerUrl(), getSocketIoOptions()) : null;
 
-// Register handlers immediately so we don't miss early events
+// Register handlers immediately
 if (socket) setupSocketHandlers();
 
 /** Évite sync avant que checkAuth ait décidé (sinon mauvaises données hors-ligne). */
@@ -303,7 +311,7 @@ if (document.getElementById('server-select') && !window._serverSelectHooked) {
         const port = e.target.value;
         if (port === 'custom') return;
         if (socket) socket.disconnect();
-        socket = io('http://' + defaultHost + ':' + port, getSocketIoOptions());
+        // Connected on single origin
         setupSocketHandlers();
         // Request menuOnly auth on the new server to load correct coins/cards
         const u = localStorage.getItem('geocube_username');
@@ -320,43 +328,73 @@ window.startBtnAction = function () {
     const password = localStorage.getItem('geocube_password') || "";
     const type = localStorage.getItem('geocube_auth_type') || "login";
     
-    let host = window.isApp ? 'geocube.duckdns.org' : window.location.hostname;
-    let port = document.getElementById('server-select').value;
-    
-    if (port === 'custom') {
-        const customVal = document.getElementById('server-custom-ip').value.trim();
+    const sel = document.getElementById('server-select');
+    const worldName = (sel && sel.value === '30002') ? 'Beta' : 'Alpha';
+    let targetUrl = getSocketServerUrl();
+
+    if (sel && sel.value === 'custom') {
+        const customVal = document.getElementById('server-custom-ip')?.value?.trim();
         if (customVal) {
-            if (customVal.includes(':')) {
-                const parts = customVal.split(':'); host = parts[0]; port = parts[1];
-            } else {
-                host = customVal; port = '30000';
-            }
+            targetUrl = customVal.startsWith('http') ? customVal : ('http://' + customVal);
+            if (socket) socket.disconnect();
+            socket = io(targetUrl, getSocketIoOptions());
+            setupSocketHandlers();
         }
     }
 
-    if (socket) socket.disconnect();
-    const finalPort = (port === 'custom' || !port) ? '30000' : port;
     pendingJoinPayload = {
         username: pseudo,
         password: password,
         type: type,
         color: document.getElementById('color-input').value,
-        menuOnly: false
+        menuOnly: false,
+        world: worldName,
+        serverName: worldName
     };
-    socket = io(`http://${host}:${finalPort}`, getSocketIoOptions());
-    setupSocketHandlers();
-    if (socket.connected) flushPendingJoin();
-    if (socket) socket.disconnect();
+
+    if (!socket || !socket.connected) {
+        if (socket) socket.disconnect();
+        socket = io(targetUrl, getSocketIoOptions());
+        setupSocketHandlers();
+    } else {
+        flushPendingJoin();
+    }
+};
+
+window.verifyCredentials = function (type) {
+    skipSyncUntilAuthReady = false;
+    const pseudo = localStorage.getItem('geocube_username');
+    const password = localStorage.getItem('geocube_password');
+    if (!pseudo || !password) return;
+
+    const sel = document.getElementById('server-select');
+    const worldName = (sel && sel.value === '30002') ? 'Beta' : 'Alpha';
+    let targetUrl = getSocketServerUrl();
+
+    if (sel && sel.value === 'custom') {
+        const customVal = document.getElementById('server-custom-ip')?.value?.trim();
+        if (customVal) {
+            targetUrl = customVal.startsWith('http') ? customVal : ('http://' + customVal);
+        }
+    }
+
     pendingJoinPayload = {
         username: pseudo,
         password: password,
         type: type || 'login',
         color: '#ff0000',
-        menuOnly: true
+        menuOnly: true,
+        world: worldName,
+        serverName: worldName
     };
-    socket = io(`http://${host}:${port}`, getSocketIoOptions());
-    setupSocketHandlers();
-    if (socket.connected) flushPendingJoin();
+
+    if (!socket || !socket.connected) {
+        if (socket) socket.disconnect();
+        socket = io(targetUrl, getSocketIoOptions());
+        setupSocketHandlers();
+    } else {
+        flushPendingJoin();
+    }
 };
 
 // Note: Auto-auth is handled by checkAuth() in index.html → handleAuth() → verifyCredentials()
@@ -1274,20 +1312,28 @@ function addChatMessage(u, t, adminTag = false) {
 
 function setupSocketHandlers() {
     socket.on('connect', () => {
-        console.log("Connecté au serveur ! Sync...");
+        console.log('Connecté au serveur ! Sync...');
         const status = document.getElementById('connection-status');
         if (status) {
-            status.innerText = "EN LIGNE"; status.style.color = "#4caf50"; status.style.borderColor = "#4caf50";
+            status.innerText = 'EN LIGNE';
+            status.style.color = '#4caf50';
+            status.style.borderColor = '#4caf50';
         }
         if (pendingJoinPayload) {
             flushPendingJoin();
+            return;
+        }
+        const savedU = localStorage.getItem('geocube_username');
+        const savedP = localStorage.getItem('geocube_password');
+        const savedT = localStorage.getItem('geocube_auth_type') || 'login';
+        if (savedU && savedP && !isGameActive) {
+            window.verifyCredentials(savedT);
             return;
         }
         if (skipSyncUntilAuthReady) {
             connectDeferredSync = true;
             return;
         }
-        // Utiliser les données locales si le serveur n'a pas encore répondu
         if (!hasLoadedData) {
             coins = localData.coins;
             clickerData = localData.clicker;

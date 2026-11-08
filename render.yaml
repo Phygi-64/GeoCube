@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: geocube
+    env: node
+    plan: free
+    region: frankfurt # ou oregon / ohi
+    buildCommand: npm install
+    startCommand: node src/server/server.js
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000

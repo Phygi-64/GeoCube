@@ -1320,6 +1320,9 @@ function setupSocketHandlers() {
 
     
 
+    socket.on('bornesData', (data) => onReceiveBornes(data));
+    socket.on('claimBorneResult', (data) => onClaimBorneResult(data));
+    socket.on('adminActionError', (msg) => alert('Admin: ' + msg));
     socket.on('authSuccess', (data) => {
         isAdmin = data.isAdmin || false;
         if (isAdmin) {
@@ -1782,6 +1785,9 @@ function animate() {
         if (stats.blocksPlaced >= 100) document.getElementById('quest-build_100-btn')?.removeAttribute('disabled');
         if (stats.blocksPlaced >= 250) document.getElementById('quest-build_250-btn')?.removeAttribute('disabled');
         if (stats.blocksPlaced >= 500) document.getElementById('quest-build_500-btn')?.removeAttribute('disabled');
+        if (stats.distance >= 100) document.getElementById('quest-dist_100-btn')?.removeAttribute('disabled');
+        if (stats.distance >= 500) document.getElementById('quest-dist_500-btn')?.removeAttribute('disabled');
+        if (stats.distance >= 2000) document.getElementById('quest-dist_2000-btn')?.removeAttribute('disabled');
         if (stats.distance >= 300) document.getElementById('quest-dist-btn')?.removeAttribute('disabled');
 
         // Daily Quest check
@@ -1802,11 +1808,352 @@ function animate() {
     renderer.render(scene, camera);
 }
 // --- WALKING MODE (MARCHE) & MAP ---
-let isWalkTracking = window.isApp || true; // Always true in app
+let isWalkTracking = true;
 let walkSteps = 0;
-let lastAccelTime = 0;
-let lastRewardDistance = 0;
-let map, playerMarker;
+let totalWalkDistance = 0;
+let lastGpsPos = null;
+let map = null;
+let playerMarker = null;
+let borneMarkers = [];
+let allBornes = [];
+let userLocation = { lat: 48.8584, lon: 2.2945 }; // Default Paris Tour Eiffel until GPS is read
+let realGpsAcquired = false;
 
-let userLocation = { lat: 0, lon: 0 };
+// Haversine distance formula (in meters)
+function getHaversineDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // Earth radius in meters
+    const phi1 = lat1 * Math.PI / 180;
+    const phi2 = lat2 * Math.PI / 180;
+    const deltaPhi = (lat2 - lat1) * Math.PI / 180;
+    const deltaLambda = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+              Math.cos(phi1) * Math.cos(phi2) *
+              Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
 
+// Format distance helper (meters or km)
+function formatDistance(m) {
+    if (m >= 1000) return (m / 1000).toFixed(2) + ' km';
+    return Math.round(m) + ' m';
+}
+
+// Update HUD stats
+function updateWalkUI() {
+    const distEl = document.getElementById('walk-total-distance');
+    if (distEl) distEl.innerText = formatDistance(totalWalkDistance);
+
+    const stepsEl = document.getElementById('walk-total-steps');
+    if (stepsEl) stepsEl.innerText = `${walkSteps} pas`;
+
+    // Also update 3D game stats distance
+    const dist3D = document.getElementById('stats-dist');
+    if (dist3D) dist3D.innerText = `Distance: ${Math.floor(stats.distance)}m`;
+
+    // Check distance quests
+    if (stats.distance >= 100) document.getElementById('quest-dist_100-btn')?.removeAttribute('disabled');
+    if (stats.distance >= 500) document.getElementById('quest-dist_500-btn')?.removeAttribute('disabled');
+    if (stats.distance >= 2000) document.getElementById('quest-dist_2000-btn')?.removeAttribute('disabled');
+}
+
+// Leaflet Map Initialization
+function initWalkMap() {
+    if (map || typeof L === 'undefined') return;
+    const mapContainer = document.getElementById('walk-map');
+    if (!mapContainer) return;
+
+    try {
+        map = L.map('walk-map', {
+            zoomControl: true,
+            attributionControl: false
+        }).setView([userLocation.lat, userLocation.lon], 16);
+
+        // OpenStreetMap dark / standard layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+        }).addTo(map);
+
+        // Custom pulsing avatar icon for player
+        const playerIcon = L.divIcon({
+            className: 'player-gps-marker',
+            html: `<div style="width: 20px; height: 20px; background: #33c1ff; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 0 15px #33c1ff; animation: pulse 1.5s infinite;"></div>`,
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+        });
+
+        playerMarker = L.marker([userLocation.lat, userLocation.lon], { icon: playerIcon }).addTo(map);
+        playerMarker.bindPopup('<b style="font-family: monospace; font-size: 8px;">TOI</b>');
+
+        renderBornes();
+    } catch (e) {
+        console.error("Erreur initialisation Leaflet:", e);
+    }
+}
+
+// Triggered when user opens #walk-menu
+window.onOpenWalkMenu = function () {
+    initWalkMap();
+    setTimeout(() => {
+        if (map) {
+            map.invalidateSize();
+            centerMapOnPlayer();
+        }
+    }, 200);
+
+    // Show admin borne creation panel if admin
+    const adminPanel = document.getElementById('admin-borne-panel');
+    if (adminPanel) {
+        adminPanel.style.display = isAdmin ? 'block' : 'none';
+    }
+
+    renderBornes();
+    startGpsTracking();
+};
+
+// Start watching device GPS
+function startGpsTracking() {
+    if (!navigator.geolocation) {
+        const s = document.getElementById('walk-gps-status');
+        if (s) { s.innerText = "NON DISPONIBLE"; s.style.color = "#ff3333"; }
+        return;
+    }
+
+    navigator.geolocation.watchPosition(
+        (pos) => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            const acc = pos.coords.accuracy;
+            onGpsUpdate(lat, lng, acc);
+        },
+        (err) => {
+            console.warn("GPS error:", err.message);
+            const s = document.getElementById('walk-gps-status');
+            if (s && !realGpsAcquired) {
+                s.innerText = "SIMULATION / ATTENTE";
+                s.style.color = "#ff9800";
+            }
+        },
+        { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+    );
+}
+
+// On GPS position received
+function onGpsUpdate(lat, lng, accuracy) {
+    realGpsAcquired = true;
+    userLocation = { lat, lon: lng };
+
+    const statusEl = document.getElementById('walk-gps-status');
+    if (statusEl) {
+        statusEl.innerText = `ACTIF (±${Math.round(accuracy)}m)`;
+        statusEl.style.color = "#4caf50";
+    }
+
+    if (lastGpsPos) {
+        const delta = getHaversineDistance(lastGpsPos.lat, lastGpsPos.lng, lat, lng);
+        // Filter out GPS drift jitter (< 2m) or unrealistic GPS teleportation (> 300m)
+        if (delta >= 2 && delta <= 300) {
+            totalWalkDistance += delta;
+            walkSteps += Math.round(delta / 0.75); // approx 0.75m per step
+            stats.distance += delta;
+            updateWalkUI();
+            saveData();
+        }
+    }
+    lastGpsPos = { lat, lng };
+
+    if (playerMarker && map) {
+        playerMarker.setLatLng([lat, lng]);
+    }
+
+    renderBornes();
+}
+
+// Center map on player
+window.centerMapOnPlayer = function () {
+    if (map) {
+        map.setView([userLocation.lat, userLocation.lon], 16, { animate: true });
+    }
+};
+
+// Simulate walk step (for PC testing or indoor walking)
+window.simulateWalkStep = function () {
+    // Walk ~50m in random direction
+    const latDelta = (Math.random() - 0.5) * 0.0006 + 0.0003;
+    const lngDelta = (Math.random() - 0.5) * 0.0006 + 0.0003;
+    const newLat = userLocation.lat + latDelta;
+    const newLng = userLocation.lon + lngDelta;
+
+    const deltaDist = getHaversineDistance(userLocation.lat, userLocation.lon, newLat, newLng);
+    totalWalkDistance += deltaDist;
+    walkSteps += Math.round(deltaDist / 0.75);
+    stats.distance += deltaDist;
+
+    userLocation = { lat: newLat, lon: newLng };
+    lastGpsPos = { lat: newLat, lng: newLng };
+
+    if (playerMarker && map) {
+        playerMarker.setLatLng([newLat, newLng]);
+        map.panTo([newLat, newLng]);
+    }
+
+    const statusEl = document.getElementById('walk-gps-status');
+    if (statusEl) {
+        statusEl.innerText = "SIMULÉ (+50m)";
+        statusEl.style.color = "#33c1ff";
+    }
+
+    updateWalkUI();
+    renderBornes();
+    saveData();
+};
+
+// Server sent bornes data
+function onReceiveBornes(bornesList) {
+    allBornes = bornesList || [];
+    renderBornes();
+}
+
+// Render bornes on Leaflet map & in the proximity list
+function renderBornes() {
+    const listEl = document.getElementById('walk-bornes-list');
+
+    // Clear old markers on map
+    if (map) {
+        borneMarkers.forEach(m => map.removeLayer(m));
+        borneMarkers = [];
+    }
+
+    if (!allBornes || allBornes.length === 0) {
+        if (listEl) listEl.innerHTML = '<div style="font-family: monospace; font-size: 8px; color: #888;">Aucune borne active.</div>';
+        return;
+    }
+
+    // Calculate distance to each borne
+    const bornesWithDistance = allBornes.map(b => {
+        const dist = getHaversineDistance(userLocation.lat, userLocation.lon, b.lat, b.lng);
+        return { ...b, distance: dist };
+    });
+
+    // Sort by nearest first
+    bornesWithDistance.sort((a, b) => a.distance - b.distance);
+
+    // Add markers on map
+    if (map) {
+        bornesWithDistance.forEach(b => {
+            const isNear = b.distance <= 50;
+            const borneIcon = L.divIcon({
+                className: 'borne-map-icon',
+                html: `<div style="width: 28px; height: 28px; background: ${isNear ? '#4caf50' : '#ffeb3b'}; border: 3px solid #000; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 0 10px ${isNear ? '#4caf50' : '#ffeb3b'};">💎</div>`,
+                iconSize: [28, 28],
+                iconAnchor: [14, 14]
+            });
+
+            const m = L.marker([b.lat, b.lng], { icon: borneIcon }).addTo(map);
+            const claimBtnHtml = isNear 
+                ? `<button onclick="claimBorneFromList('${b.id}')" style="background:#4caf50; color:#fff; border:none; padding:5px 8px; font-family:'Press Start 2P'; font-size:7px; cursor:pointer; margin-top:5px; border-radius:4px;">RÉCOLTER !</button>`
+                : `<div style="font-size:7px; color:#aaa; margin-top:5px;">Rapproche-toi à &lt;50m (${formatDistance(b.distance)})</div>`;
+
+            m.bindPopup(`
+                <div style="font-family: 'Press Start 2P'; font-size: 8px; line-height: 1.6;">
+                    <b style="color: #ffeb3b;">${b.name}</b><br>
+                    <span style="color: #ddd;">${b.description || ''}</span><br>
+                    <span style="color: #4caf50;">Gain: +${b.reward?.coins || 100} 🪙</span><br>
+                    ${claimBtnHtml}
+                </div>
+            `);
+            borneMarkers.push(m);
+        });
+    }
+
+    // Render list HTML
+    if (listEl) {
+        listEl.innerHTML = '';
+        bornesWithDistance.forEach(b => {
+            const isNear = b.distance <= 50;
+            const item = document.createElement('div');
+            item.className = 'quest-item';
+            item.style.marginBottom = '6px';
+            item.style.padding = '10px';
+            item.style.border = isNear ? '2px solid #4caf50' : '1px solid #444';
+            item.style.background = isNear ? 'rgba(76, 175, 80, 0.15)' : 'rgba(255, 255, 255, 0.05)';
+
+            item.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                    <div>
+                        <div style="font-size: 9px; color: ${isNear ? '#4caf50' : '#fff'}; font-weight: bold; margin-bottom: 4px;">${b.name}</div>
+                        <div style="font-size: 7px; color: #aaa; margin-bottom: 4px;">${b.description || 'Borne de ressources'}</div>
+                        <div style="font-size: 7px; color: #ffeb3b;">
+                            Distance: <b>${formatDistance(b.distance)}</b> | Gain: +${b.reward?.coins || 100} 🪙 (${b.reward?.blockCount || 10}x ${b.reward?.blockType || 'diamant'})
+                        </div>
+                    </div>
+                    <button class="pixel-btn" style="width: auto; padding: 6px 10px; font-size: 7px; background: ${isNear ? '#4caf50' : '#555'}; border-color: ${isNear ? '#2e7d32' : '#333'};" 
+                        ${isNear ? '' : 'disabled'} onclick="claimBorneFromList('${b.id}')">
+                        ${isNear ? 'RÉCOLTER' : 'TROP LOIN'}
+                    </button>
+                </div>
+            `;
+            listEl.appendChild(item);
+        });
+    }
+}
+
+// User clicks Récolter
+window.claimBorneFromList = function (borneId) {
+    if (!socket || !socket.connected) {
+        alert("Connexion au serveur requise.");
+        return;
+    }
+    socket.emit('claimBorne', {
+        borneId: borneId,
+        userLat: userLocation.lat,
+        userLng: userLocation.lon
+    });
+};
+
+// Result of claim borne
+function onClaimBorneResult(res) {
+    if (res.success) {
+        alert(`🎉 Trésor trouvé ! ${res.rewardText}`);
+        if (res.coins !== undefined) {
+            coins = res.coins;
+            updateCoinsUI();
+        }
+        if (res.inventory) {
+            inventory = res.inventory;
+            updateHotbarUI();
+        }
+        saveData();
+        renderBornes();
+    } else {
+        alert(res.message || "Impossible de récolter cette borne.");
+    }
+}
+
+// Admin Borne Creation
+window.adminCreateBorneAtCurrentPos = function () {
+    if (!isAdmin) {
+        alert("Accès réservé aux administrateurs.");
+        return;
+    }
+    const nameInput = document.getElementById('admin-borne-name');
+    const blockSelect = document.getElementById('admin-borne-block');
+    const coinsInput = document.getElementById('admin-borne-coins');
+
+    const name = nameInput?.value?.trim() || "Borne Découverte";
+    const blockType = blockSelect?.value || "diamond";
+    const coinsVal = parseInt(coinsInput?.value) || 150;
+
+    socket.emit('adminAddBorne', {
+        name: name,
+        lat: userLocation.lat,
+        lng: userLocation.lon,
+        blockType: blockType,
+        coins: coinsVal,
+        blockCount: 15,
+        description: `Créée par l'admin ${window.myUsername || ''}`
+    });
+
+    if (nameInput) nameInput.value = '';
+    alert(`Borne "${name}" créée avec succès aux coordonnées ${userLocation.lat.toFixed(4)}, ${userLocation.lon.toFixed(4)} !`);
+};

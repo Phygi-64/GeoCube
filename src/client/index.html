@@ -48,7 +48,7 @@
                 if (walkBtn) walkBtn.style.display = 'block';
             } else {
                 const walkBtn = document.querySelector('button[onclick="showLoginSubMenu(\'walk-menu\')"]');
-                if (walkBtn) walkBtn.style.display = 'none';
+                if (walkBtn) walkBtn.style.display = 'block';
             }
         });
     </script>
@@ -133,7 +133,7 @@
             <button class="text-btn" onclick="showLoginSubMenu('friends-menu')" style="font-size: 16px;">> AMIS</button>
             <button class="text-btn" onclick="showLoginSubMenu('trade-menu')" style="font-size: 16px;">> ÉCHANGES</button>
             <button class="text-btn" onclick="showLoginSubMenu('clicker-menu')" style="font-size: 16px; color: #4caf50;">> CLICKER</button>
-            <button class="text-btn" onclick="showLoginSubMenu('walk-menu')" style="font-size: 20px; color: #33c1ff; display: none;">> MARCHE</button>
+            <button class="text-btn" onclick="showLoginSubMenu('walk-menu')" style="font-size: 20px; color: #33c1ff; display: block;">> MARCHE</button>
             <button class="text-btn" onclick="guiShowSettingsMenu()" style="font-size: 16px;">> PARAMÈTRES</button>
             <button class="text-btn" onclick="showLoginSubMenu('infos-menu')" style="font-size: 16px;">> INFOS</button>
             <button id="toggle-commands" class="text-btn" style="font-size: 12px; margin-top: 20px; color: #888;"
@@ -470,6 +470,69 @@
                 < RETOUR</button>
         </div>
 
+        
+        <!-- MODE MARCHE / GPS / BORNES SUB-MENU -->
+        <div id="walk-menu" class="left-menu" style="display: none; width: 92vw; max-width: 650px; max-height: 85vh; overflow-y: auto; padding-right: 10px;">
+            <h2 class="pixel-title" style="font-size: 20px; text-align: left; margin-bottom: 12px; color: #33c1ff;">MODE MARCHE & GÉOCACHING</h2>
+            <p style="color: #ccc; font-family: 'Press Start 2P'; font-size: 8px; line-height: 1.8; margin-bottom: 15px;">
+                Explore le monde réel grâce à ton GPS ! Marche pour valider tes quêtes et approche-toi à moins de 50 mètres des Bornes pour récolter leurs trésors.
+            </p>
+
+            <!-- STATS GPS -->
+            <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                <div class="quest-item" style="flex: 1; min-width: 140px; margin-bottom: 0; padding: 10px;">
+                    <div style="font-size: 8px; color: #aaa; margin-bottom: 5px;">GPS STATUT</div>
+                    <div id="walk-gps-status" style="font-size: 9px; color: #ffeb3b;">INITIALISATION...</div>
+                </div>
+                <div class="quest-item" style="flex: 1; min-width: 140px; margin-bottom: 0; padding: 10px;">
+                    <div style="font-size: 8px; color: #aaa; margin-bottom: 5px;">DISTANCE PARCOURUE</div>
+                    <div id="walk-total-distance" style="font-size: 11px; color: #4caf50;">0 m</div>
+                </div>
+                <div class="quest-item" style="flex: 1; min-width: 140px; margin-bottom: 0; padding: 10px;">
+                    <div style="font-size: 8px; color: #aaa; margin-bottom: 5px;">PAS ESTIMÉS</div>
+                    <div id="walk-total-steps" style="font-size: 11px; color: #33c1ff;">0 pas</div>
+                </div>
+            </div>
+
+            <!-- CARTE INTERACTIVE LEAFLET -->
+            <div id="walk-map" style="width: 100%; height: 260px; border-radius: 12px; border: 2px solid #33c1ff; margin-bottom: 12px; background: #000; position: relative;"></div>
+
+            <!-- CONTROLES RAPIDES -->
+            <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                <button class="pixel-btn" style="flex: 1; font-size: 8px; background: #2196f3; border-color: #0d47a1;" onclick="centerMapOnPlayer()">📍 RECENTRER</button>
+                <button class="pixel-btn" style="flex: 1; font-size: 8px; background: #9c27b0; border-color: #4a148c;" onclick="simulateWalkStep()">🚶 SIMULER +50M</button>
+            </div>
+
+            <!-- LISTE DES BORNES -->
+            <h3 class="pixel-title" style="font-size: 13px; text-align: left; margin-bottom: 10px; color: #ffeb3b;">BORNES À PROXIMITÉ (<50m pour récolter)</h3>
+            <div id="walk-bornes-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 220px; overflow-y: auto; margin-bottom: 15px;">
+                <div style="font-family: 'Press Start 2P'; font-size: 8px; color: #888;">Recherche des bornes environnantes...</div>
+            </div>
+
+            <!-- OUTIL ADMIN: AJOUTER UNE BORNE -->
+            <div id="admin-borne-panel" style="display: none; background: rgba(255, 60, 60, 0.15); border: 2px solid #ff3333; padding: 12px; border-radius: 10px; margin-bottom: 15px;">
+                <h4 style="font-family: 'Press Start 2P'; font-size: 9px; color: #ff5555; margin-bottom: 8px;">ADMIN: POSER UNE BORNE SUR TA POSITION</h4>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <input type="text" id="admin-borne-name" class="clean-input" placeholder="Nom de la Borne (ex: Jardin Public)..." style="background:#000; color:#fff; font-size:9px; padding:6px; border:1px solid #777; width: 100%; box-sizing: border-box;">
+                    <div style="display: flex; gap: 8px;">
+                        <select id="admin-borne-block" class="clean-input" style="flex:1; background:#000; color:#fff; font-size:8px; padding:6px; border:1px solid #777;">
+                            <option value="diamond">Diamant</option>
+                            <option value="emeraude">Émeraude</option>
+                            <option value="gold">Or</option>
+                            <option value="obsidienne">Obsidienne</option>
+                            <option value="brick">Brique</option>
+                            <option value="wood">Bois</option>
+                        </select>
+                        <input type="number" id="admin-borne-coins" class="clean-input" placeholder="Pièces (100)" value="150" style="width:90px; background:#000; color:#fff; font-size:9px; padding:6px; border:1px solid #777;">
+                        <button class="pixel-btn" onclick="adminCreateBorneAtCurrentPos()" style="background:#4caf50; font-size:8px; padding:6px 12px;">CRÉER</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RETOUR -->
+            <button class="text-btn" style="color: #ff3333; margin-top: 10px; font-size: 14px;" onclick="showLoginSubMenu('main-menu')">&lt; RETOUR</button>
+        </div>
+
         <!-- OVERLAY COMMANDS -->
         <div id="commands-overlay" class="guide-panel"
             style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1002; width: 90vw; max-width: 600px; background: #1a1a1a; padding: 20px; border: 4px solid #33c1ff; border-radius: 20px;">
@@ -571,6 +634,7 @@
             const target = document.getElementById(hash);
             if (target) {
                 target.style.display = 'flex';
+                if (hash === 'walk-menu' && window.onOpenWalkMenu) window.onOpenWalkMenu();
                 const playOpts = document.getElementById('play-options-container');
                 if (playOpts) playOpts.style.display = 'none';
             }

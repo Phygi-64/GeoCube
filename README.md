@@ -1,20 +1,15 @@
 # 🌍 GeoCube
 
-**GeoCube** est un jeu multijoueur innovant combinant un monde voxel 3D (style Minecraft), un mode clicker / idle, et un **Mode Marche & Géocaching GPS** (style Pokémon GO / Geocaching) accessible sur le Web et sur mobile (Android via Capacitor).
+**GeoCube** est un jeu multijoueur voxel 3D (style Minecraft) avec mode clicker / idle, système d'inventaire persistant, quêtes, cartes à collectionner, amis et échanges en direct, accessible sur le Web et sur mobile (Android via Capacitor).
 
 ---
 
 ## 🚀 Fonctionnalités Principales
 
 - **🎮 Monde Voxel 3D en temps réel** : Pose et destruction de blocs, physique, textures personnalisées, multijoueur fluide synchronisé via Socket.IO.
-- **🧭 Mode Marche & Géocaching GPS** :
-  - Détection GPS réelle (`navigator.geolocation`) avec calcul précis de la distance parcourue (formule de Haversine).
-  - Carte interactive **Leaflet** intégrée affichant le joueur en temps réel et les **Bornes de ressources** autour de lui.
-  - Système de **Bornes** : approche-toi à moins de 50 mètres d'une borne dans le monde réel pour récolter des pièces et des blocs rares (Diamant, Émeraude, Or, Obsidienne).
-  - Quêtes de marche (Promenade 100m, Exploration 500m, Tour du Monde 2000m) débloquant des récompenses.
-  - Outil Admin : création et suppression de bornes directement depuis l'interface.
 - **⛏️ Mini-jeu Clicker / Idle** : Génération automatique de pièces avec pioches, villageois, golems, cités d'or et dragons du néant.
-- **🤝 Social & Multijoueur** : Système d'amis avec statut en ligne, requêtes d'amis, chat global et système d'échanges (Trading) en direct.
+- **📜 Quêtes & Progression** : Quêtes de construction et de distance parcourue dans le monde débloquant des récompenses.
+- **🤝 Social & Multijoueur** : Système d'amis avec statut en ligne, requêtes d'amis, chat global et système d'échanges (Trading) de ressources en direct.
 - **📦 Multi-Mondes** : Prise en charge des mondes **Alpha** et **Beta** sur la même instance serveur.
 - **📱 Compatible Mobile & PC** : Contrôles tactiles complets, orientation paysage forcée, export APK Android prêt à l'emploi.
 
@@ -99,7 +94,7 @@ Voici les meilleures solutions pour héberger le serveur GeoCube **100% gratuite
 Si tu souhaites un **véritable serveur VPS dédié Linux**, actif 24h/24 sans aucune mise en veille et avec une persistance disque garantie :
 
 1. Inscris-toi sur [Oracle Cloud Free Tier](https://www.oracle.com/cloud/free/) ("Always Free").
-2. Crée une instance de calcul gratuite (Ampere ARM avec jusqu'à 4 vCPU et 24 Go de RAM).
+2. Crée une instance de calcul gratuite (Ampere ARM avec jusqu'à 4 vCPU et 24 Go de RAM offerts à vie).
 3. Installe Node.js et PM2 :
    ```bash
    sudo apt update && sudo apt install -y nodejs npm git
@@ -140,9 +135,9 @@ L'APK sera généré dans :
 ```text
 GeoCube/
 ├── src/
-│   ├── client/              # Interface Web, Three.js, Leaflet, UI
-│   │   ├── index.html       # Structure HTML, menus, HUD, Leaflet container
-│   │   ├── client.js        # Logique jeu 3D, GPS, Socket.IO, Quêtes, Bornes
+│   ├── client/              # Interface Web, Three.js, UI
+│   │   ├── index.html       # Structure HTML, menus, HUD
+│   │   ├── client.js        # Logique jeu 3D, Socket.IO, Quêtes, Clicker
 │   │   ├── style.css        # Styles Pixel-Art, responsive mobile
 │   │   └── assets/          # Textures 3D, icônes, sons
 │   └── server/              # Backend Node.js
@@ -150,7 +145,6 @@ GeoCube/
 │       ├── server_alpha.js  # Serveur autonome Alpha (port 30001)
 │       ├── server_beta.js   # Serveur autonome Beta (port 30002)
 │       ├── users.json       # Persistance des profils joueurs et inventaires
-│       ├── bornes.json      # Coordonnées GPS et récompenses des Bornes
 │       └── world_alpha.json # Blocs posés dans le monde Alpha
 ├── android/                 # Projet Android natif (Capacitor)
 ├── Dockerfile               # Configuration conteneur prête pour le déploiement cloud

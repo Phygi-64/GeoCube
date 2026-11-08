@@ -20,7 +20,6 @@ const DATA_DIR = __dirname;
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const WORLD_ALPHA_FILE = path.join(DATA_DIR, 'world_alpha.json');
 const WORLD_BETA_FILE = path.join(DATA_DIR, 'world_beta.json');
-const BORNES_FILE = path.join(DATA_DIR, 'bornes.json');
 
 // --- MIDDLEWARES & STATICS ---
 app.use(express.json());
@@ -47,8 +46,7 @@ app.get('/health', (req, res) => {
         worlds: {
             alpha: worlds.Alpha ? worlds.Alpha.length : 0,
             beta: worlds.Beta ? worlds.Beta.length : 0
-        },
-        bornesCount: bornes.length
+        }
     });
 });
 
@@ -59,75 +57,6 @@ const worlds = {
     Beta: []
 };
 let users = {};
-let bornes = [];
-
-// --- INITIAL DEFAULT BORNES (If file does not exist) ---
-const DEFAULT_BORNES = [
-    {
-        id: "borne-paris-eiffel",
-        name: "Tour Eiffel (Paris)",
-        lat: 48.8584,
-        lng: 2.2945,
-        description: "Borne légendaire au pied de la Dame de Fer !",
-        reward: { coins: 150, blockType: "diamond", blockCount: 12 }
-    },
-    {
-        id: "borne-paris-louvre",
-        name: "Pyramide du Louvre (Paris)",
-        lat: 48.8606,
-        lng: 2.3376,
-        description: "Ressources anciennes et cristaux précieux.",
-        reward: { coins: 120, blockType: "gold", blockCount: 15 }
-    },
-    {
-        id: "borne-lyon-fourviere",
-        name: "Basilique de Fourvière (Lyon)",
-        lat: 45.7622,
-        lng: 4.8222,
-        description: "Vue panoramique et trésor des hauteurs.",
-        reward: { coins: 100, blockType: "emeraude", blockCount: 10 }
-    },
-    {
-        id: "borne-marseille-vieuxport",
-        name: "Vieux-Port (Marseille)",
-        lat: 43.2952,
-        lng: 5.3744,
-        description: "Ressources maritimes et obsidienne pure.",
-        reward: { coins: 110, blockType: "obsidienne", blockCount: 8 }
-    },
-    {
-        id: "borne-bordeaux-bourse",
-        name: "Place de la Bourse (Bordeaux)",
-        lat: 44.8412,
-        lng: -0.5699,
-        description: "Miroir d'eau étincelant et récompenses.",
-        reward: { coins: 100, blockType: "brick", blockCount: 30 }
-    },
-    {
-        id: "borne-london-bigben",
-        name: "Big Ben (Londres)",
-        lat: 51.5007,
-        lng: -0.1246,
-        description: "Horloge légendaire renfermant des blocs rares.",
-        reward: { coins: 130, blockType: "gold", blockCount: 15 }
-    },
-    {
-        id: "borne-ny-times-square",
-        name: "Times Square (New York)",
-        lat: 40.7580,
-        lng: -73.9855,
-        description: "Le carrefour du monde et ses récompenses lumineuses.",
-        reward: { coins: 180, blockType: "diamond", blockCount: 15 }
-    },
-    {
-        id: "borne-tokyo-shibuya",
-        name: "Shibuya Crossing (Tokyo)",
-        lat: 35.6595,
-        lng: 139.7005,
-        description: "L'énergie de Tokyo concentrée dans un cube géant.",
-        reward: { coins: 200, blockType: "emeraude", blockCount: 20 }
-    }
-];
 
 // --- LOAD DATA ---
 function loadJsonFile(filepath, fallback) {
@@ -148,16 +77,8 @@ users = loadJsonFile(USERS_FILE, {});
 worlds.Alpha = loadJsonFile(WORLD_ALPHA_FILE, []);
 worlds.Beta = loadJsonFile(WORLD_BETA_FILE, []);
 
-// Load Bornes
-bornes = loadJsonFile(BORNES_FILE, null);
-if (!bornes || !Array.isArray(bornes) || bornes.length === 0) {
-    bornes = DEFAULT_BORNES;
-    saveBornes();
-}
-
 console.log(`[DATA] Utilisateurs chargés : ${Object.keys(users).length}`);
 console.log(`[DATA] Monde Alpha : ${worlds.Alpha.length} blocs | Monde Beta : ${worlds.Beta.length} blocs`);
-console.log(`[DATA] Bornes GPS chargées : ${bornes.length}`);
 
 // --- SAVE FUNCTIONS ---
 function saveUsers() {
@@ -177,26 +98,16 @@ function saveWorlds() {
     }
 }
 
-function saveBornes() {
-    try {
-        fs.writeFileSync(BORNES_FILE, JSON.stringify(bornes, null, 2), 'utf8');
-    } catch (e) {
-        console.error("Erreur sauvegarde bornes.json:", e);
-    }
-}
-
 // Periodic auto-save every 60s
 setInterval(() => {
     saveUsers();
     saveWorlds();
-    saveBornes();
 }, 60000);
 
 function gracefulShutdown() {
     console.log("\n[SERVEUR] Sauvegarde avant arrêt...");
     saveUsers();
     saveWorlds();
-    saveBornes();
     process.exit(0);
 }
 
@@ -227,10 +138,6 @@ function migrateUser(u) {
         users[u].inventory = new Array(36).fill(null);
         users[u].cards = { blocks: {}, skins: ['#ff0000'] };
         users[u].coins = users[u].coins || 100;
-        modified = true;
-    }
-    if (!users[u].claimedBornes) {
-        users[u].claimedBornes = {}; // borneId -> timestamp
         modified = true;
     }
     return modified;
@@ -298,7 +205,6 @@ io.on('connection', (socket) => {
                 v5_reset: true,
                 friends: [],
                 friendRequests: [],
-                claimedBornes: {},
                 stats: {
                     distance: 0,
                     blocksPlaced: 0,
@@ -348,7 +254,6 @@ io.on('connection', (socket) => {
                 clicker: users[username].clicker || { total: 0, buildings: { pioche: 0, steve: 0, four: 0, mine: 0, villageois: 0 } }
             });
 
-            socket.emit('bornesData', bornes);
             socket.emit('authSuccess', { username: username, isAdmin: !!users[username].isAdmin, menuOnly: true });
             return;
         }
@@ -356,7 +261,6 @@ io.on('connection', (socket) => {
         // Active Player joining the 3D world
         const existingId = Object.keys(players).find(id => players[id].username === username);
         if (existingId && existingId !== socket.id) {
-            // Disconnect old socket if reconnecting
             delete players[existingId];
         }
 
@@ -385,7 +289,6 @@ io.on('connection', (socket) => {
 
         socket.emit('currentPlayers', worldPlayers);
         socket.emit('currentBlocks', worlds[requestedWorld] || []);
-        socket.emit('bornesData', bornes);
 
         if (users[username].inventory) {
             socket.emit('loadInventory', users[username].inventory);
@@ -509,124 +412,6 @@ io.on('connection', (socket) => {
         }
         if (changed) saveUsers();
         socket.emit('syncResult', { coins: users[username].coins, clicker: users[username].clicker });
-    });
-
-    // --- BORNES (GPS / GÉOCACHING) ---
-    socket.on('getBornes', () => {
-        socket.emit('bornesData', bornes);
-    });
-
-    socket.on('claimBorne', (data) => {
-        // data: { borneId, userLat, userLng }
-        const username = socket.username || players[socket.id]?.username;
-        if (!username || !users[username]) {
-            socket.emit('claimBorneResult', { success: false, message: "Non connecté." });
-            return;
-        }
-
-        const borne = bornes.find(b => b.id === data.borneId);
-        if (!borne) {
-            socket.emit('claimBorneResult', { success: false, message: "Borne introuvable." });
-            return;
-        }
-
-        const now = Date.now();
-        if (!users[username].claimedBornes) users[username].claimedBornes = {};
-        const lastClaim = users[username].claimedBornes[borne.id] || 0;
-        const COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes cooldown
-
-        if (now - lastClaim < COOLDOWN_MS) {
-            const remainingMins = Math.ceil((COOLDOWN_MS - (now - lastClaim)) / 60000);
-            socket.emit('claimBorneResult', {
-                success: false,
-                message: `Borne déjà récoltée ! Reviens dans ${remainingMins} minute(s).`
-            });
-            return;
-        }
-
-        // Grant reward
-        const coinsReward = borne.reward?.coins || 100;
-        const blockType = borne.reward?.blockType || 'diamond';
-        const blockCount = borne.reward?.blockCount || 10;
-
-        users[username].claimedBornes[borne.id] = now;
-        users[username].coins = (users[username].coins || 0) + coinsReward;
-
-        // Add blocks to user inventory
-        if (!users[username].inventory) users[username].inventory = new Array(36).fill(null);
-        let remaining = blockCount;
-        for (let i = 0; i < users[username].inventory.length; i++) {
-            const slot = users[username].inventory[i];
-            if (slot && slot.type === blockType && slot.count < 64) {
-                const add = Math.min(64 - slot.count, remaining);
-                slot.count += add;
-                remaining -= add;
-                if (remaining <= 0) break;
-            }
-        }
-        if (remaining > 0) {
-            for (let i = 0; i < users[username].inventory.length; i++) {
-                if (!users[username].inventory[i]) {
-                    users[username].inventory[i] = { type: blockType, count: remaining };
-                    remaining = 0;
-                    break;
-                }
-            }
-        }
-
-        saveUsers();
-
-        socket.emit('claimBorneResult', {
-            success: true,
-            borneId: borne.id,
-            borneName: borne.name,
-            coins: users[username].coins,
-            inventory: users[username].inventory,
-            rewardText: `+${coinsReward} pièces et +${blockCount} blocs de ${blockType} !`
-        });
-
-        io.emit('chatMessage', {
-            user: 'Système GPS',
-            text: `🎯 ${username} a récolté la borne "${borne.name}" ! (+${coinsReward} pièces)`
-        });
-    });
-
-    // Admin Borne Creation
-    socket.on('adminAddBorne', (borneData) => {
-        const username = socket.username || players[socket.id]?.username;
-        if (!username || !users[username]?.isAdmin) {
-            socket.emit('adminActionError', 'Accès administrateur requis.');
-            return;
-        }
-
-        const newBorne = {
-            id: 'borne-' + Date.now(),
-            name: borneData.name || `Borne ${bornes.length + 1}`,
-            lat: parseFloat(borneData.lat),
-            lng: parseFloat(borneData.lng),
-            description: borneData.description || "Borne posée par l'admin.",
-            reward: {
-                coins: parseInt(borneData.coins) || 100,
-                blockType: borneData.blockType || "diamond",
-                blockCount: parseInt(borneData.blockCount) || 10
-            }
-        };
-
-        bornes.push(newBorne);
-        saveBornes();
-        io.emit('bornesData', bornes);
-        io.emit('chatMessage', { user: 'Admin', text: `✨ Nouvelle borne ajoutée : "${newBorne.name}" !` });
-        console.log(`[ADMIN] Borne créée par ${username}:`, newBorne);
-    });
-
-    // Admin Borne Deletion
-    socket.on('adminDeleteBorne', (borneId) => {
-        const username = socket.username || players[socket.id]?.username;
-        if (!username || !users[username]?.isAdmin) return;
-
-        bornes = bornes.filter(b => b.id !== borneId);
-        saveBornes();
-        io.emit('bornesData', bornes);
     });
 
     // --- FRIENDS & TRADES ---

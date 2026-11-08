@@ -802,48 +802,6 @@ button:active {
     pointer-events: auto;
 }
 
-/* --- MAP --- */
-#walk-map {
-    width: 100%;
-    height: 250px;
-    background: #000;
-    border-radius: 15px;
-    overflow: hidden;
-    z-index: 10;
-}
-
-.leaflet-container {
-    background: #000 !important;
-}
-
-.leaflet-control-attribution {
-    display: none !important;
-}
-
-/* Bornes Stickers */
-.borne-marker-round {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 3px solid #ffeb3b;
-    background-size: cover;
-    background-position: center;
-    box-shadow: 0 0 10px rgba(255, 235, 59, 0.5);
-    background-color: #000;
-}
-
-.borne-popup .leaflet-popup-content-wrapper {
-    background: #111;
-    color: #fff;
-    border: 2px solid #33c1ff;
-    border-radius: 10px;
-    font-family: 'Press Start 2P', cursive;
-}
-
-.borne-popup .leaflet-popup-tip {
-    background: #33c1ff;
-}
-
 /* --- FRIEND LIST STYLES --- */
 .friend-item {
     display: flex;
